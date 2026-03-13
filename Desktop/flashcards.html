@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlashCards - Revisão de Estudos</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', sans-serif;
+      background: #fafafa;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    header {
+      text-align: center;
+      padding: 0 0 48px;
+      border-bottom: 1px solid #e5e5e5;
+      margin-bottom: 32px;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 300;
+      letter-spacing: -0.5px;
+      color: #000;
+      margin-bottom: 8px;
+    }
+
+    header p { color: #888; font-size: 0.9rem; font-weight: 400; letter-spacing: 0.3px; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 32px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .tab {
+      flex: 1;
+      max-width: 200px;
+      padding: 14px 24px;
+      border: none;
+      background: transparent;
+      color: #999;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border-radius: 0;
+      transition: all 0.25s;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+
+    .tab.active {
+      background: transparent;
+      color: #000;
+      border-bottom-color: #000;
+    }
+
+    .tab:hover:not(.active) { color: #555; }
+
+    /* Sections */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* Create Section */
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 12px 14px;
+      background: #fff;
+      border: 1px solid #d5d5d5;
+      border-radius: 6px;
+      color: #1a1a1a;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: all 0.25s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #000;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .form-group textarea { resize: vertical; min-height: 100px; }
+
+    .options-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .option-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .option-row input[type="text"] { flex: 1; }
+
+    .option-row input[type="radio"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #667eea;
+      cursor: pointer;
+    }
+
+    .option-row .correct-label {
+      font-size: 0.8rem;
+      color: #667eea;
+      min-width: 55px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s;
+      font-family: inherit;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-primary {
+      background: #000;
+      color: #fff;
+      border: 1px solid #000;
+    }
+
+    .btn-primary:hover { background: #222; border-color: #222; }
+
+    .btn-secondary {
+      background: #fff;
+      color: #333;
+      border: 1px solid #d5d5d5;
+    }
+
+    .btn-secondary:hover { background: #f5f5f5; border-color: #999; }
+
+    .btn-danger {
+      background: #fff;
+      color: #d32f2f;
+      border: 1px solid #ffcdd2;
+    }
+
+    .btn-danger:hover { background: #ffebee; border-color: #d32f2f; }
+
+    .btn-sm { padding: 8px 14px; font-size: 0.85rem; }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    /* Card List */
+    .deck-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .deck-header h2 { font-size: 1.3rem; font-weight: 300; }
+
+    .stats-bar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    .stat {
+      text-align: center;
+      padding: 16px 20px;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      min-width: 100px;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 300;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-top: 6px;
+      font-weight: 600;
+    }
+
+    .stat-green .stat-value { color: #2d7a3d; }
+    .stat-red .stat-value { color: #c41e3a; }
+    .stat-blue .stat-value { color: #1a1a1a; }
+
+    .card-item {
+      background: #fff;
+      border-radius: 6px;
+      padding: 18px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #e5e5e5;
+      transition: all 0.25s;
+    }
+
+    .card-item:hover { border-color: #999; background: #fafafa; }
+
+    .card-item-info { flex: 1; margin-right: 10px; }
+
+    .card-item-question {
+      font-weight: 500;
+      margin-bottom: 6px;
+      word-break: break-word;
+      color: #1a1a1a;
+      font-size: 0.95rem;
+    }
+
+    .card-item-meta {
+      font-size: 0.75rem;
+      color: #888;
+    }
+
+    .card-item-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-category {
+      background: #e5e5e5;
+      color: #333;
+    }
+
+    /* Study Section */
+    .study-setup {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .study-setup h2 {
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+    }
+
+    .study-setup p {
+      color: #888;
+      margin-bottom: 24px;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .flashcard-area {
+      perspective: 1000px;
+      margin: 28px auto;
+      max-width: 650px;
+    }
+
+    .flashcard {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      padding: 48px 40px;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .flashcard-progress {
+      position: absolute;
+      top: 18px;
+      right: 24px;
+      font-size: 0.8rem;
+      color: #999;
+      font-weight: 500;
+    }
+
+    .flashcard-category {
+      position: absolute;
+      top: 18px;
+      left: 24px;
+    }
+
+    .flashcard-question {
+      font-size: 1.4rem;
+      font-weight: 400;
+      line-height: 1.6;
+      margin-bottom: 40px;
+      color: #1a1a1a;
+      letter-spacing: -0.2px;
+    }
+
+    .flashcard-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .option-btn {
+      padding: 14px 18px;
+      background: #fff;
+      border: 1px solid #d5d5d5;
+      border-radius: 6px;
+      color: #1a1a1a;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.25s;
+      text-align: left;
+      font-family: inherit;
+      font-weight: 400;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: #333;
+      background: #f9f9f9;
+    }
+
+    .option-btn.correct {
+      border-color: #2d7a3d;
+      background: #f0f7f2;
+      color: #2d7a3d;
+      font-weight: 500;
+    }
+
+    .option-btn.wrong {
+      border-color: #c41e3a;
+      background: #fdf1f3;
+      color: #c41e3a;
+      font-weight: 500;
+    }
+
+    .option-btn:disabled { cursor: default; }
+
+    .explanation-box {
+      margin-top: 24px;
+      padding: 18px;
+      background: #fdf1f3;
+      border: 1px solid #e5d5d9;
+      border-radius: 6px;
+      text-align: left;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .explanation-box.correct-box {
+      background: #f0f7f2;
+      border-color: #d5e5d9;
+    }
+
+    .explanation-box h4 {
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .explanation-box h4.wrong-title { color: #c41e3a; }
+    .explanation-box h4.correct-title { color: #2d7a3d; }
+
+    .explanation-box p {
+      color: #555;
+      line-height: 1.6;
+      font-size: 0.9rem;
+    }
+
+    .next-btn-area {
+      margin-top: 20px;
+    }
+
+    /* Results */
+    .results {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .results h2 {
+      font-size: 1.5rem;
+      font-weight: 300;
+      margin-bottom: 24px;
+      color: #1a1a1a;
+    }
+
+    .results .score {
+      font-size: 3.5rem;
+      font-weight: 300;
+      margin: 16px 0 24px;
+      letter-spacing: -1px;
+    }
+
+    .results .score.great { color: #2d7a3d; }
+    .results .score.ok { color: #856404; }
+    .results .score.bad { color: #c41e3a; }
+
+    .results-details {
+      margin: 28px 0;
+      text-align: left;
+    }
+
+    .result-item {
+      background: #fff;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border-left: 3px solid;
+      border: 1px solid #e5e5e5;
+      border-left: 3px solid;
+    }
+
+    .result-item.was-correct { border-left-color: #2d7a3d; }
+    .result-item.was-wrong { border-left-color: #c41e3a; }
+
+    .result-item-q {
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: #1a1a1a;
+    }
+
+    .result-item-a {
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .result-item-a span { font-weight: 600; color: #333; }
+    .result-item-a .your-answer { color: #c41e3a; }
+    .result-item-a .right-answer { color: #2d7a3d; }
+
+    /* Import/Export */
+    .import-export {
+      margin-top: 28px;
+      padding: 20px;
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid #e5e5e5;
+    }
+
+    .import-export h3 {
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .import-export p {
+      font-size: 0.85rem;
+      color: #888;
+    }
+
+    .import-export textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 12px;
+      background: #fafafa;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      color: #1a1a1a;
+      font-family: 'Courier New', 'Monaco', monospace;
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+      resize: vertical;
+      transition: all 0.25s;
+    }
+
+    .import-export textarea:focus {
+      background: #fff;
+      border-color: #999;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+
+    .empty-state h3 { color: #999; margin-bottom: 8px; font-weight: 400; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .container { padding: 24px 16px; }
+      header { padding: 24px 0 32px; }
+      header h1 { font-size: 1.8rem; }
+      .flashcard-question { font-size: 1.2rem; }
+      .flashcard { padding: 36px 24px; }
+      .stats-bar { justify-content: flex-start; flex-wrap: wrap; }
+      .stat { min-width: 70px; padding: 12px 12px; font-size: 0.9rem; }
+      .results .score { font-size: 2.5rem; }
+      .tab { max-width: 100%; padding: 12px 16px; font-size: 0.85rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>FlashCards</h1>
+    <p>Crie, organize e revise seus flashcards</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="study">Estudar</button>
+    <button class="tab" data-tab="cards">Meus Cards</button>
+    <button class="tab" data-tab="create">Criar</button>
+  </div>
+
+  <!-- STUDY SECTION -->
+  <div id="study" class="section active">
+    <div id="study-setup" class="study-setup">
+      <h2>Pronto para revisar?</h2>
+      <p>Selecione uma categoria e comece a estudar</p>
+      <div class="filter-row">
+        <select id="study-category" class="btn btn-secondary" style="padding:10px 16px;">
+          <option value="all">Todas as categorias</option>
+        </select>
+        <select id="study-mode" class="btn btn-secondary" style="padding:10px 16px;">
+          <option value="all">Todos os cards</option>
+          <option value="wrong">Apenas errados</option>
+          <option value="unseen">Nunca vistos</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="startStudy()" id="start-study-btn">
+        Iniciar Revisao
+      </button>
+      <div id="no-cards-msg" style="display:none; margin-top:20px; color:#888;">
+        Nenhum card encontrado. Crie alguns primeiro!
+      </div>
+    </div>
+
+    <div id="study-active" style="display:none;">
+      <div class="stats-bar" style="justify-content:center; margin-bottom:20px;">
+        <div class="stat stat-green"><div class="stat-value" id="live-correct">0</div><div class="stat-label">Acertos</div></div>
+        <div class="stat stat-red"><div class="stat-value" id="live-wrong">0</div><div class="stat-label">Erros</div></div>
+        <div class="stat stat-blue"><div class="stat-value" id="live-remaining">0</div><div class="stat-label">Restantes</div></div>
+      </div>
+      <div class="flashcard-area">
+        <div class="flashcard" id="flashcard"></div>
+      </div>
+    </div>
+
+    <div id="study-results" style="display:none;"></div>
+  </div>
+
+  <!-- CARDS SECTION -->
+  <div id="cards" class="section">
+    <div class="deck-header">
+      <h2>Meus FlashCards</h2>
+      <div>
+        <select id="filter-category" class="btn btn-secondary btn-sm" onchange="renderCardList()">
+          <option value="all">Todas</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="stats-bar" style="margin-bottom:20px;">
+      <div class="stat stat-blue"><div class="stat-value" id="total-cards">0</div><div class="stat-label">Total</div></div>
+      <div class="stat stat-green"><div class="stat-value" id="correct-cards">0</div><div class="stat-label">Acertos</div></div>
+      <div class="stat stat-red"><div class="stat-value" id="wrong-cards">0</div><div class="stat-label">Erros</div></div>
+    </div>
+
+    <div id="card-list"></div>
+
+    <div class="import-export" style="margin-top:30px;">
+      <h3>Importar / Exportar</h3>
+      <p style="font-size:0.85rem; color:#888; margin-bottom:12px;">
+        Exporte seus cards como JSON para backup ou importe cards de outro lugar.
+      </p>
+      <div class="btn-row">
+        <button class="btn btn-secondary btn-sm" onclick="exportCards()">Exportar JSON</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('import-area').style.display='block'">Importar JSON</button>
+        <button class="btn btn-danger btn-sm" onclick="clearAllCards()">Limpar Tudo</button>
+      </div>
+      <div id="import-area" style="display:none; margin-top:12px;">
+        <textarea id="import-json" placeholder='Cole o JSON aqui...'></textarea>
+        <button class="btn btn-primary btn-sm" onclick="importCards()">Importar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE SECTION -->
+  <div id="create" class="section">
+    <h2 style="margin-bottom:20px;">Criar FlashCard</h2>
+
+    <div class="form-group">
+      <label>Categoria</label>
+      <div style="display:flex; gap:8px;">
+        <select id="card-category" style="flex:1; padding:12px 16px; background:#1a1a2e; border:1px solid #2a2a4a; border-radius:10px; color:#e0e0e0; font-size:1rem;">
+          <option value="">Selecione ou crie nova...</option>
+        </select>
+        <input type="text" id="new-category" placeholder="Nova categoria" style="flex:1; padding:12px 16px; background:#1a1a2e; border:1px solid #2a2a4a; border-radius:10px; color:#e0e0e0; font-size:1rem;">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Pergunta</label>
+      <textarea id="card-question" placeholder="Digite a pergunta..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Opcoes de Resposta (marque a correta)</label>
+      <div class="options-container" id="options-container">
+        <div class="option-row">
+          <input type="radio" name="correct" value="0" checked>
+          <input type="text" placeholder="Opcao A" class="option-input">
+          <span class="correct-label">Correta</span>
+        </div>
+        <div class="option-row">
+          <input type="radio" name="correct" value="1">
+          <input type="text" placeholder="Opcao B" class="option-input">
+          <span class="correct-label"></span>
+        </div>
+        <div class="option-row">
+          <input type="radio" name="correct" value="2">
+          <input type="text" placeholder="Opcao C" class="option-input">
+          <span class="correct-label"></span>
+        </div>
+        <div class="option-row">
+          <input type="radio" name="correct" value="3">
+          <input type="text" placeholder="Opcao D" class="option-input">
+          <span class="correct-label"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Explicacao (aparece quando errar)</label>
+      <textarea id="card-explanation" placeholder="Explique por que a resposta correta e a certa..."></textarea>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveCard()">Salvar Card</button>
+      <button class="btn btn-secondary" onclick="clearForm()">Limpar</button>
+    </div>
+
+    <div id="save-feedback" style="margin-top:16px; display:none; padding:12px; border-radius:10px; text-align:center;"></div>
+
+    <!-- Quick add multiple -->
+    <div class="import-export" style="margin-top:30px;">
+      <h3>Adicao Rapida (Multiplos Cards)</h3>
+      <p style="font-size:0.85rem; color:#888; margin-bottom:12px;">
+        Formato: uma pergunta por bloco, separados por linha em branco.<br>
+        Linha 1: Pergunta | Linha 2-5: Opcoes (prefixe com * a correta) | Linha 6: Explicacao
+      </p>
+      <textarea id="bulk-input" placeholder="Qual e a capital do Brasil?
+Sao Paulo
+*Brasilia
+Rio de Janeiro
+Salvador
+Brasilia foi inaugurada em 1960 como nova capital federal.
+
+Qual linguagem roda no navegador?
+Python
+Java
+*JavaScript
+C++
+JavaScript e a unica linguagem que roda nativamente nos navegadores."></textarea>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="text" id="bulk-category" placeholder="Categoria para todos" style="flex:1; padding:10px 14px; background:#0f0f23; border:1px solid #2a2a4a; border-radius:8px; color:#e0e0e0; font-size:0.9rem;">
+        <button class="btn btn-primary btn-sm" onclick="bulkAdd()">Adicionar Todos</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ========== DATA ==========
+  const STORAGE_KEY = 'flashcards_app_data';
+
+  function loadData() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { cards: [], history: {} };
+    try { return JSON.parse(raw); } catch { return { cards: [], history: {} }; }
+  }
+
+  function saveData(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function getCategories() {
+    const data = loadData();
+    return [...new Set(data.cards.map(c => c.category).filter(Boolean))];
+  }
+
+  // ========== TABS ==========
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab).classList.add('active');
+      if (tab.dataset.tab === 'cards') renderCardList();
+      if (tab.dataset.tab === 'create') refreshCategorySelects();
+      if (tab.dataset.tab === 'study') { resetStudyView(); refreshCategorySelects(); }
+    });
+  });
+
+  // ========== CATEGORY SELECTS ==========
+  function refreshCategorySelects() {
+    const cats = getCategories();
+    ['card-category', 'filter-category', 'study-category'].forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      const val = sel.value;
+      const firstOpt = sel.options[0].outerHTML;
+      sel.innerHTML = firstOpt;
+      cats.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        sel.appendChild(opt);
+      });
+      if (cats.includes(val)) sel.value = val;
+    });
+  }
+
+  // ========== CREATE ==========
+  function saveCard(card) {
+    if (!card) {
+      const question = document.getElementById('card-question').value.trim();
+      const optInputs = document.querySelectorAll('.option-input');
+      const options = Array.from(optInputs).map(i => i.value.trim());
+      const correctIdx = parseInt(document.querySelector('input[name="correct"]:checked').value);
+      const explanation = document.getElementById('card-explanation').value.trim();
+      const catSelect = document.getElementById('card-category').value;
+      const catNew = document.getElementById('new-category').value.trim();
+      const category = catNew || catSelect;
+
+      if (!question) return showFeedback('Escreva uma pergunta!', false);
+      if (options.filter(o => o).length < 2) return showFeedback('Adicione pelo menos 2 opcoes!', false);
+      if (!options[correctIdx]) return showFeedback('A opcao marcada como correta esta vazia!', false);
+      if (!category) return showFeedback('Selecione ou crie uma categoria!', false);
+
+      card = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        question,
+        options: options.filter((o, i) => o || i === correctIdx),
+        correctIndex: correctIdx,
+        explanation: explanation || 'A resposta correta e: ' + options[correctIdx],
+        category,
+        created: new Date().toISOString()
+      };
+      // Re-index correctIndex after filtering
+      const filteredOptions = [];
+      let newCorrectIdx = 0;
+      options.forEach((o, i) => {
+        if (o || i === correctIdx) {
+          if (i === correctIdx) newCorrectIdx = filteredOptions.length;
+          filteredOptions.push(o);
+        }
+      });
+      card.options = filteredOptions;
+      card.correctIndex = newCorrectIdx;
+    }
+
+    const data = loadData();
+    data.cards.push(card);
+    saveData(data);
+    showFeedback('Card salvo com sucesso!', true);
+    clearForm();
+    refreshCategorySelects();
+  }
+
+  function showFeedback(msg, success) {
+    const el = document.getElementById('save-feedback');
+    el.style.display = 'block';
+    el.style.background = success ? 'rgba(46,204,113,0.1)' : 'rgba(231,76,60,0.1)';
+    el.style.color = success ? '#2ecc71' : '#e74c3c';
+    el.textContent = msg;
+    setTimeout(() => el.style.display = 'none', 3000);
+  }
+
+  function clearForm() {
+    document.getElementById('card-question').value = '';
+    document.querySelectorAll('.option-input').forEach(i => i.value = '');
+    document.getElementById('card-explanation').value = '';
+    document.getElementById('new-category').value = '';
+    document.querySelector('input[name="correct"][value="0"]').checked = true;
+  }
+
+  // ========== BULK ADD ==========
+  function bulkAdd() {
+    const raw = document.getElementById('bulk-input').value.trim();
+    const category = document.getElementById('bulk-category').value.trim();
+    if (!raw) return alert('Cole o conteudo no campo acima.');
+    if (!category) return alert('Informe uma categoria.');
+
+    const blocks = raw.split(/\n\s*\n/);
+    let count = 0;
+
+    blocks.forEach(block => {
+      const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+      if (lines.length < 3) return;
+
+      const question = lines[0];
+      const optionLines = [];
+      let correctIdx = 0;
+      let explanation = '';
+      let optionsDone = false;
+
+      for (let i = 1; i < lines.length; i++) {
+        if (!optionsDone && (lines[i].startsWith('*') || optionLines.length < 5)) {
+          if (lines[i].startsWith('*')) {
+            correctIdx = optionLines.length;
+            optionLines.push(lines[i].substring(1).trim());
+          } else {
+            optionLines.push(lines[i]);
+          }
+          if (optionLines.length >= 4 || i === lines.length - 2) optionsDone = true;
+        } else {
+          explanation += lines[i] + ' ';
+        }
+      }
+
+      if (optionLines.length >= 2) {
+        const card = {
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+          question,
+          options: optionLines,
+          correctIndex: correctIdx,
+          explanation: explanation.trim() || 'A resposta correta e: ' + optionLines[correctIdx],
+          category,
+          created: new Date().toISOString()
+        };
+        const data = loadData();
+        data.cards.push(card);
+        saveData(data);
+        count++;
+      }
+    });
+
+    document.getElementById('bulk-input').value = '';
+    alert(`${count} card(s) adicionado(s)!`);
+    refreshCategorySelects();
+  }
+
+  // ========== CARD LIST ==========
+  function renderCardList() {
+    const data = loadData();
+    const filter = document.getElementById('filter-category').value;
+    const cards = filter === 'all' ? data.cards : data.cards.filter(c => c.category === filter);
+
+    document.getElementById('total-cards').textContent = data.cards.length;
+
+    let correctCount = 0, wrongCount = 0;
+    data.cards.forEach(c => {
+      const h = data.history[c.id];
+      if (h) {
+        correctCount += h.correct || 0;
+        wrongCount += h.wrong || 0;
+      }
+    });
+    document.getElementById('correct-cards').textContent = correctCount;
+    document.getElementById('wrong-cards').textContent = wrongCount;
+
+    const list = document.getElementById('card-list');
+
+    if (cards.length === 0) {
+      list.innerHTML = '<div class="empty-state"><h3>Nenhum card ainda</h3><p>Va para a aba "Criar" para adicionar seus primeiros flashcards!</p></div>';
+      return;
+    }
+
+    list.innerHTML = cards.map(c => {
+      const h = data.history[c.id] || {};
+      const statsText = h.correct || h.wrong
+        ? `✓${h.correct||0} ✗${h.wrong||0}`
+        : 'Nunca visto';
+      return `
+        <div class="card-item">
+          <div class="card-item-info">
+            <div class="card-item-question">${escHtml(c.question)}</div>
+            <div class="card-item-meta">
+              <span class="badge badge-category">${escHtml(c.category)}</span>
+              <span style="margin-left:8px;">${statsText}</span>
+            </div>
+          </div>
+          <div class="card-item-actions">
+            <button class="btn btn-danger btn-sm" onclick="deleteCard('${c.id}')">Excluir</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function deleteCard(id) {
+    if (!confirm('Excluir este card?')) return;
+    const data = loadData();
+    data.cards = data.cards.filter(c => c.id !== id);
+    delete data.history[id];
+    saveData(data);
+    renderCardList();
+    refreshCategorySelects();
+  }
+
+  function clearAllCards() {
+    if (!confirm('Tem certeza? Isso vai apagar TODOS os cards e historico!')) return;
+    saveData({ cards: [], history: {} });
+    renderCardList();
+    refreshCategorySelects();
+  }
+
+  // ========== IMPORT / EXPORT ==========
+  function exportCards() {
+    const data = loadData();
+    const json = JSON.stringify(data.cards, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'flashcards-export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importCards() {
+    const raw = document.getElementById('import-json').value.trim();
+    try {
+      const imported = JSON.parse(raw);
+      if (!Array.isArray(imported)) throw new Error('not array');
+      const data = loadData();
+      let count = 0;
+      imported.forEach(c => {
+        if (c.question && c.options && typeof c.correctIndex === 'number') {
+          c.id = c.id || Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+          c.category = c.category || 'Importado';
+          c.explanation = c.explanation || 'A resposta correta e: ' + c.options[c.correctIndex];
+          data.cards.push(c);
+          count++;
+        }
+      });
+      saveData(data);
+      alert(`${count} card(s) importado(s)!`);
+      document.getElementById('import-area').style.display = 'none';
+      document.getElementById('import-json').value = '';
+      renderCardList();
+      refreshCategorySelects();
+    } catch {
+      alert('JSON invalido. Verifique o formato.');
+    }
+  }
+
+  // ========== STUDY ==========
+  let studyState = null;
+
+  function resetStudyView() {
+    document.getElementById('study-setup').style.display = '';
+    document.getElementById('study-active').style.display = 'none';
+    document.getElementById('study-results').style.display = 'none';
+    studyState = null;
+  }
+
+  function startStudy() {
+    const data = loadData();
+    const catFilter = document.getElementById('study-category').value;
+    const modeFilter = document.getElementById('study-mode').value;
+
+    let cards = catFilter === 'all' ? [...data.cards] : data.cards.filter(c => c.category === catFilter);
+
+    if (modeFilter === 'wrong') {
+      cards = cards.filter(c => data.history[c.id] && data.history[c.id].wrong > 0);
+    } else if (modeFilter === 'unseen') {
+      cards = cards.filter(c => !data.history[c.id]);
+    }
+
+    if (cards.length === 0) {
+      document.getElementById('no-cards-msg').style.display = 'block';
+      setTimeout(() => document.getElementById('no-cards-msg').style.display = 'none', 3000);
+      return;
+    }
+
+    // Shuffle
+    for (let i = cards.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [cards[i], cards[j]] = [cards[j], cards[i]];
+    }
+
+    studyState = {
+      cards,
+      current: 0,
+      correct: 0,
+      wrong: 0,
+      results: []
+    };
+
+    document.getElementById('study-setup').style.display = 'none';
+    document.getElementById('study-active').style.display = 'block';
+    document.getElementById('study-results').style.display = 'none';
+    renderStudyCard();
+  }
+
+  function renderStudyCard() {
+    if (!studyState) return;
+    const { cards, current } = studyState;
+
+    document.getElementById('live-correct').textContent = studyState.correct;
+    document.getElementById('live-wrong').textContent = studyState.wrong;
+    document.getElementById('live-remaining').textContent = cards.length - current;
+
+    if (current >= cards.length) {
+      showResults();
+      return;
+    }
+
+    const card = cards[current];
+
+    // Shuffle options for display but track correct
+    const indices = card.options.map((_, i) => i);
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+
+    const flashcard = document.getElementById('flashcard');
+    flashcard.innerHTML = `
+      <div class="flashcard-category"><span class="badge badge-category">${escHtml(card.category)}</span></div>
+      <div class="flashcard-progress">${current + 1} / ${cards.length}</div>
+      <div class="flashcard-question">${escHtml(card.question)}</div>
+      <div class="flashcard-options">
+        ${indices.map(idx => `
+          <button class="option-btn" data-idx="${idx}" onclick="answerCard(${idx})">
+            ${escHtml(card.options[idx])}
+          </button>
+        `).join('')}
+      </div>
+      <div id="answer-feedback"></div>
+      <div id="next-area" class="next-btn-area" style="display:none;">
+        <button class="btn btn-primary" onclick="nextCard()">Proximo →</button>
+      </div>
+    `;
+  }
+
+  function answerCard(selectedIdx) {
+    if (!studyState) return;
+    const card = studyState.cards[studyState.current];
+    const isCorrect = selectedIdx === card.correctIndex;
+
+    // Disable all buttons
+    document.querySelectorAll('.option-btn').forEach(btn => {
+      btn.disabled = true;
+      const idx = parseInt(btn.dataset.idx);
+      if (idx === card.correctIndex) btn.classList.add('correct');
+      if (idx === selectedIdx && !isCorrect) btn.classList.add('wrong');
+    });
+
+    // Update stats
+    const data = loadData();
+    if (!data.history[card.id]) data.history[card.id] = { correct: 0, wrong: 0 };
+
+    if (isCorrect) {
+      studyState.correct++;
+      data.history[card.id].correct++;
+    } else {
+      studyState.wrong++;
+      data.history[card.id].wrong++;
+    }
+    saveData(data);
+
+    studyState.results.push({
+      question: card.question,
+      correct: isCorrect,
+      selected: card.options[selectedIdx],
+      answer: card.options[card.correctIndex],
+      explanation: card.explanation
+    });
+
+    // Show feedback
+    const feedback = document.getElementById('answer-feedback');
+    if (isCorrect) {
+      feedback.innerHTML = `
+        <div class="explanation-box correct-box" style="animation:fadeIn 0.4s ease;">
+          <h4 class="correct-title">✓ Correto!</h4>
+          <p>${escHtml(card.explanation)}</p>
+        </div>`;
+    } else {
+      feedback.innerHTML = `
+        <div class="explanation-box" style="animation:fadeIn 0.4s ease;">
+          <h4 class="wrong-title">✗ Incorreto!</h4>
+          <p><strong>Resposta correta:</strong> ${escHtml(card.options[card.correctIndex])}</p>
+          <p style="margin-top:8px;">${escHtml(card.explanation)}</p>
+        </div>`;
+    }
+
+    document.getElementById('live-correct').textContent = studyState.correct;
+    document.getElementById('live-wrong').textContent = studyState.wrong;
+    document.getElementById('live-remaining').textContent = studyState.cards.length - studyState.current - 1;
+    document.getElementById('next-area').style.display = 'block';
+  }
+
+  function nextCard() {
+    studyState.current++;
+    renderStudyCard();
+  }
+
+  function showResults() {
+    document.getElementById('study-active').style.display = 'none';
+    const el = document.getElementById('study-results');
+    el.style.display = 'block';
+
+    const { correct, wrong, results } = studyState;
+    const total = correct + wrong;
+    const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+    const scoreClass = pct >= 70 ? 'great' : pct >= 40 ? 'ok' : 'bad';
+
+    el.innerHTML = `
+      <div class="results">
+        <h2>Revisao Completa!</h2>
+        <div class="score ${scoreClass}">${pct}%</div>
+        <p>${correct} acerto(s) de ${total} pergunta(s)</p>
+        <div class="results-details">
+          ${results.map(r => `
+            <div class="result-item ${r.correct ? 'was-correct' : 'was-wrong'}">
+              <div class="result-item-q">${escHtml(r.question)}</div>
+              <div class="result-item-a">
+                ${r.correct
+                  ? `<span class="right-answer">✓ ${escHtml(r.answer)}</span>`
+                  : `Sua resposta: <span class="your-answer">${escHtml(r.selected)}</span> — Correta: <span class="right-answer">${escHtml(r.answer)}</span>`
+                }
+              </div>
+              ${!r.correct ? `<div style="margin-top:6px; font-size:0.85rem; color:#aaa;">${escHtml(r.explanation)}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+        <div class="btn-row" style="justify-content:center;">
+          <button class="btn btn-primary" onclick="startStudy()">Estudar Novamente</button>
+          <button class="btn btn-secondary" onclick="resetStudyView()">Voltar</button>
+        </div>
+      </div>
+    `;
+  }
+
+  // ========== HELPERS ==========
+  function escHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  // ========== RADIO LABEL UPDATE ==========
+  document.querySelectorAll('input[name="correct"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelectorAll('.option-row .correct-label').forEach((lbl, i) => {
+        lbl.textContent = parseInt(radio.value) === i && radio.checked ? 'Correta' : '';
+      });
+    });
+  });
+
+  // ========== INIT ==========
+  refreshCategorySelects();
+  renderCardList();
+</script>
+
+</body>
+</html>
