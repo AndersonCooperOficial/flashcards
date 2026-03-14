@@ -886,8 +886,9 @@ JavaScript e a unica linguagem que roda nativamente nos navegadores."></textarea
     <div class="ai-generate-section">
       <h3>1. Fonte de Conteúdo</h3>
 
-      <label style="display:block; margin-bottom:8px; font-size:0.85rem; font-weight:600; color:#333; text-transform:uppercase; letter-spacing:0.4px;">Cole Texto Livre</label>
-      <textarea id="ai-content" placeholder="Cole o conteúdo aqui (aula, artigo, notas, etc.)..." style="width:100%; min-height:150px; padding:12px 14px; background:#fff; border:1px solid #d5d5d5; border-radius:6px; color:#1a1a1a; font-size:0.95rem; font-family:inherit; margin-bottom:20px; resize:vertical;"></textarea>
+      <label style="display:block; margin-bottom:8px; font-size:0.85rem; font-weight:600; color:#333; text-transform:uppercase; letter-spacing:0.4px;">Cole Texto Livre <span style="color:#999; font-weight:400;">(máx ~4000 chars)</span></label>
+      <textarea id="ai-content" placeholder="Cole o conteúdo aqui (aula, artigo, notas, etc.)..." style="width:100%; min-height:150px; padding:12px 14px; background:#fff; border:1px solid #d5d5d5; border-radius:6px; color:#1a1a1a; font-size:0.95rem; font-family:inherit; margin-bottom:8px; resize:vertical;"></textarea>
+      <div style="font-size:0.75rem; color:#999;">💡 Dica: Quanto menor o texto, mais rápido gera. Tente com 2-5 parágrafos.</div>
 
       <label style="display:block; margin-bottom:8px; font-size:0.85rem; font-weight:600; color:#333; text-transform:uppercase; letter-spacing:0.4px;">Ou Upload de Arquivo</label>
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;">
@@ -1513,7 +1514,7 @@ JavaScript e a unica linguagem que roda nativamente nos navegadores."></textarea
 
   async function generateWithAI() {
     const apiKey = loadGroqApiKey();
-    const content = document.getElementById('ai-content').value.trim();
+    let content = document.getElementById('ai-content').value.trim();
     const cardCount = document.getElementById('ai-card-count').value;
     const categorySelect = document.getElementById('ai-category-select').value;
     const categoryNew = document.getElementById('ai-category-new').value.trim();
@@ -1533,20 +1534,24 @@ JavaScript e a unica linguagem que roda nativamente nos navegadores."></textarea
       return;
     }
 
+    // Limit content size (max 4000 chars = ~1000 tokens)
+    const MAX_CHARS = 4000;
+    if (content.length > MAX_CHARS) {
+      showAiStatus(`⚠ Conteúdo muito grande (${content.length} chars). Truncando para ${MAX_CHARS} caracteres...`, 'error');
+      content = content.substring(0, MAX_CHARS) + '...';
+    }
+
     // Disable button and show loading
     const btn = document.getElementById('ai-generate-btn');
     btn.disabled = true;
     showAiStatus(`${String.fromCharCode(8987)} Gerando ${cardCount} flashcards...`, 'loading');
 
     try {
-      const prompt = `Você é um especialista em criar questões de múltipla escolha para estudar.
-Leia o texto abaixo e crie exatamente ${cardCount} flashcards de múltipla escolha em português.
-Cada flashcard deve ter 4 opções (A, B, C, D).
-
-Retorne APENAS um JSON válido (sem markdown, sem explicações extras), com este formato exato:
+      const prompt = `Crie ${cardCount} flashcards em JSON a partir do texto abaixo. Cada um com 4 opções e índice correto.
+Retorne APENAS JSON válido, sem markdown:
 [{"question":"...","options":["A","B","C","D"],"correctIndex":0,"explanation":"..."}]
 
-Texto para criar flashcards:
+Texto:
 ${content}`;
 
       const response = await fetch(
@@ -1635,6 +1640,8 @@ ${content}`;
         errorMsg = 'Chave de API Groq inválida. Gere uma nova em console.groq.com/keys';
       } else if (error.message.includes('quota') || error.message.includes('rate')) {
         errorMsg = 'Limite de requisições atingido. Tente novamente em 1 minuto.';
+      } else if (error.message.includes('too large') || error.message.includes('Request too large')) {
+        errorMsg = 'Conteúdo ainda muito grande. Tente com texto menor (máx ~3-5 parágrafos).';
       }
       showAiStatus(`✗ ${errorMsg}`, 'error');
     } finally {
