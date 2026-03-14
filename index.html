@@ -872,12 +872,12 @@ JavaScript e a unica linguagem que roda nativamente nos navegadores."></textarea
 
     <!-- API Key Configuration -->
     <div class="api-key-section">
-      <h3>Configuração da API</h3>
-      <p>Obtenha sua chave de API gratuita em: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#667eea; text-decoration:none;">aistudio.google.com/app/apikey</a></p>
+      <h3>Configuração da API (Groq)</h3>
+      <p>Obtenha sua chave de API gratuita em: <a href="https://console.groq.com/keys" target="_blank" style="color:#667eea; text-decoration:none;">console.groq.com/keys</a></p>
       <p style="font-size:0.8rem; color:#999;">Sua chave fica salva apenas no seu navegador (localStorage). Não é enviada para servidores externos.</p>
       <div class="api-key-input-row">
-        <input type="password" id="gemini-api-key" placeholder="Cole sua chave de API aqui..." style="padding:12px 14px;">
-        <button class="btn btn-primary btn-sm" onclick="saveGeminiApiKey()" style="white-space:nowrap;">Salvar Chave</button>
+        <input type="password" id="groq-api-key" placeholder="Cole sua chave de API Groq aqui..." style="padding:12px 14px;">
+        <button class="btn btn-primary btn-sm" onclick="saveGroqApiKey()" style="white-space:nowrap;">Salvar Chave</button>
       </div>
       <div id="api-key-status"></div>
     </div>
@@ -1423,20 +1423,20 @@ JavaScript e a unica linguagem que roda nativamente nos navegadores."></textarea
   });
 
   // ========== AI GENERATION ==========
-  const GEMINI_API_KEY_STORAGE = 'gemini_api_key';
+  const GROQ_API_KEY_STORAGE = 'groq_api_key';
 
-  function loadGeminiApiKey() {
-    return localStorage.getItem(GEMINI_API_KEY_STORAGE) || '';
+  function loadGroqApiKey() {
+    return localStorage.getItem(GROQ_API_KEY_STORAGE) || '';
   }
 
-  function saveGeminiApiKey() {
-    const key = document.getElementById('gemini-api-key').value.trim();
+  function saveGroqApiKey() {
+    const key = document.getElementById('groq-api-key').value.trim();
     if (!key) {
-      showAiStatus('Por favor, cole sua chave de API.', 'error');
+      showAiStatus('Por favor, cole sua chave de API Groq.', 'error');
       return;
     }
-    localStorage.setItem(GEMINI_API_KEY_STORAGE, key);
-    showAiStatus('✓ Chave de API salva com sucesso!', 'success');
+    localStorage.setItem(GROQ_API_KEY_STORAGE, key);
+    showAiStatus('✓ Chave de API Groq salva com sucesso!', 'success');
     setTimeout(() => {
       document.getElementById('api-key-status').innerHTML = '<span class="api-key-saved">✓ Chave Salva</span>';
     }, 2000);
@@ -1452,11 +1452,11 @@ JavaScript e a unica linguagem que roda nativamente nos navegadores."></textarea
   }
 
   function updateApiKeyStatus() {
-    const key = loadGeminiApiKey();
+    const key = loadGroqApiKey();
     const statusEl = document.getElementById('api-key-status');
     if (key) {
       statusEl.innerHTML = '<span class="api-key-saved">✓ Chave Salva</span>';
-      document.getElementById('gemini-api-key').value = key;
+      document.getElementById('groq-api-key').value = key;
     }
   }
 
@@ -1512,7 +1512,7 @@ JavaScript e a unica linguagem que roda nativamente nos navegadores."></textarea
   }
 
   async function generateWithAI() {
-    const apiKey = loadGeminiApiKey();
+    const apiKey = loadGroqApiKey();
     const content = document.getElementById('ai-content').value.trim();
     const cardCount = document.getElementById('ai-card-count').value;
     const categorySelect = document.getElementById('ai-category-select').value;
@@ -1521,7 +1521,7 @@ JavaScript e a unica linguagem que roda nativamente nos navegadores."></textarea
 
     // Validations
     if (!apiKey) {
-      showAiStatus('⚠ Salve sua chave de API primeiro!', 'error');
+      showAiStatus('⚠ Salve sua chave de API Groq primeiro!', 'error');
       return;
     }
     if (!content) {
@@ -1539,21 +1539,29 @@ JavaScript e a unica linguagem que roda nativamente nos navegadores."></textarea
     showAiStatus(`${String.fromCharCode(8987)} Gerando ${cardCount} flashcards...`, 'loading');
 
     try {
-      const prompt = `Leia o texto abaixo e crie ${cardCount} flashcards de múltipla escolha em português.
-Retorne APENAS um JSON válido (sem markdown, sem explicação), com este formato exato:
+      const prompt = `Você é um especialista em criar questões de múltipla escolha para estudar.
+Leia o texto abaixo e crie exatamente ${cardCount} flashcards de múltipla escolha em português.
+Cada flashcard deve ter 4 opções (A, B, C, D).
+
+Retorne APENAS um JSON válido (sem markdown, sem explicações extras), com este formato exato:
 [{"question":"...","options":["A","B","C","D"],"correctIndex":0,"explanation":"..."}]
 
-Texto:
+Texto para criar flashcards:
 ${content}`;
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        'https://api.groq.com/openai/v1/chat/completions',
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.7 }
+            model: 'llama-3.3-70b-versatile',
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.7,
+            max_tokens: 2000
           })
         }
       );
@@ -1565,7 +1573,7 @@ ${content}`;
       }
 
       const data = await response.json();
-      const rawText = data.candidates[0].content.parts[0].text;
+      const rawText = data.choices[0].message.content;
 
       // Extract JSON from response (remove markdown if present)
       const jsonMatch = rawText.match(/\[[\s\S]*\]/);
@@ -1623,10 +1631,10 @@ ${content}`;
 
     } catch (error) {
       let errorMsg = error.message;
-      if (error.message.includes('API key')) {
-        errorMsg = 'Chave de API inválida ou expirada. Gere uma nova em aistudio.google.com';
-      } else if (error.message.includes('quota')) {
-        errorMsg = 'Limite de requisições atingido. Tente novamente mais tarde.';
+      if (error.message.includes('API key') || error.message.includes('authentication')) {
+        errorMsg = 'Chave de API Groq inválida. Gere uma nova em console.groq.com/keys';
+      } else if (error.message.includes('quota') || error.message.includes('rate')) {
+        errorMsg = 'Limite de requisições atingido. Tente novamente em 1 minuto.';
       }
       showAiStatus(`✗ ${errorMsg}`, 'error');
     } finally {
