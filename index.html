@@ -533,6 +533,148 @@
 
     .empty-state h3 { color: #999; margin-bottom: 8px; font-weight: 400; }
 
+    /* Loading Spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .api-key-section {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .api-key-section h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #1a1a1a;
+    }
+
+    .api-key-section p {
+      font-size: 0.85rem;
+      color: #888;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .api-key-input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .api-key-input-row input {
+      flex: 1;
+    }
+
+    .api-key-saved {
+      display: inline-block;
+      padding: 4px 12px;
+      background: #f0f7f2;
+      border: 1px solid #d5e5d9;
+      border-radius: 4px;
+      color: #2d7a3d;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .ai-generate-section {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .ai-generate-section h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #1a1a1a;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 12px;
+    }
+
+    .file-input-wrapper input[type="file"] {
+      display: none;
+    }
+
+    .file-input-label {
+      display: inline-block;
+      padding: 12px 16px;
+      background: #f5f5f5;
+      border: 1px dashed #d5d5d5;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #555;
+      transition: all 0.25s;
+    }
+
+    .file-input-label:hover {
+      background: #fff;
+      border-color: #999;
+    }
+
+    .file-selected {
+      display: inline-block;
+      margin-left: 12px;
+      color: #2d7a3d;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .ai-status {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 6px;
+      display: none;
+      font-size: 0.9rem;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .ai-status.success {
+      background: #f0f7f2;
+      border: 1px solid #d5e5d9;
+      color: #2d7a3d;
+      display: block;
+    }
+
+    .ai-status.error {
+      background: #fdf1f3;
+      border: 1px solid #e5d5d9;
+      color: #c41e3a;
+      display: block;
+    }
+
+    .ai-status.loading {
+      background: #f0f4f8;
+      border: 1px solid #d5dfe5;
+      color: #1a5f8f;
+      display: block;
+    }
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
@@ -564,6 +706,7 @@
     <button class="tab active" data-tab="study">Estudar</button>
     <button class="tab" data-tab="cards">Meus Cards</button>
     <button class="tab" data-tab="create">Criar</button>
+    <button class="tab" data-tab="generate">Gerar com IA</button>
   </div>
 
   <!-- STUDY SECTION -->
@@ -722,6 +865,80 @@ JavaScript e a unica linguagem que roda nativamente nos navegadores."></textarea
       </div>
     </div>
   </div>
+
+  <!-- GENERATE WITH AI SECTION -->
+  <div id="generate" class="section">
+    <h2 style="margin-bottom:20px;">Gerar FlashCards com IA</h2>
+
+    <!-- API Key Configuration -->
+    <div class="api-key-section">
+      <h3>Configuração da API</h3>
+      <p>Obtenha sua chave de API gratuita em: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#667eea; text-decoration:none;">aistudio.google.com/app/apikey</a></p>
+      <p style="font-size:0.8rem; color:#999;">Sua chave fica salva apenas no seu navegador (localStorage). Não é enviada para servidores externos.</p>
+      <div class="api-key-input-row">
+        <input type="password" id="gemini-api-key" placeholder="Cole sua chave de API aqui..." style="padding:12px 14px;">
+        <button class="btn btn-primary btn-sm" onclick="saveGeminiApiKey()" style="white-space:nowrap;">Salvar Chave</button>
+      </div>
+      <div id="api-key-status"></div>
+    </div>
+
+    <!-- Content Input Section -->
+    <div class="ai-generate-section">
+      <h3>1. Fonte de Conteúdo</h3>
+
+      <label style="display:block; margin-bottom:8px; font-size:0.85rem; font-weight:600; color:#333; text-transform:uppercase; letter-spacing:0.4px;">Cole Texto Livre</label>
+      <textarea id="ai-content" placeholder="Cole o conteúdo aqui (aula, artigo, notas, etc.)..." style="width:100%; min-height:150px; padding:12px 14px; background:#fff; border:1px solid #d5d5d5; border-radius:6px; color:#1a1a1a; font-size:0.95rem; font-family:inherit; margin-bottom:20px; resize:vertical;"></textarea>
+
+      <label style="display:block; margin-bottom:8px; font-size:0.85rem; font-weight:600; color:#333; text-transform:uppercase; letter-spacing:0.4px;">Ou Upload de Arquivo</label>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;">
+        <div class="file-input-wrapper">
+          <input type="file" id="file-txt" accept=".txt" onchange="handleFileSelect(event, 'txt')">
+          <label for="file-txt" class="file-input-label">📄 Upload .TXT</label>
+          <span id="file-txt-selected" class="file-selected" style="display:none;"></span>
+        </div>
+        <div class="file-input-wrapper">
+          <input type="file" id="file-pdf" accept=".pdf" onchange="handleFileSelect(event, 'pdf')">
+          <label for="file-pdf" class="file-input-label">📋 Upload PDF</label>
+          <span id="file-pdf-selected" class="file-selected" style="display:none;"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Options Section -->
+    <div class="ai-generate-section">
+      <h3>2. Configurações</h3>
+
+      <div class="form-group">
+        <label>Quantidade de FlashCards</label>
+        <select id="ai-card-count" style="width:100%; padding:12px 14px; background:#fff; border:1px solid #d5d5d5; border-radius:6px; color:#1a1a1a; font-size:0.95rem;">
+          <option value="5">5 cards</option>
+          <option value="10" selected>10 cards</option>
+          <option value="15">15 cards</option>
+          <option value="20">20 cards</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Categoria dos Cards</label>
+        <div style="display:flex; gap:8px;">
+          <select id="ai-category-select" style="flex:1; padding:12px 14px; background:#fff; border:1px solid #d5d5d5; border-radius:6px; color:#1a1a1a; font-size:0.95rem;">
+            <option value="">Selecione ou crie nova...</option>
+          </select>
+          <input type="text" id="ai-category-new" placeholder="Nova categoria" style="flex:1; padding:12px 14px; background:#fff; border:1px solid #d5d5d5; border-radius:6px; color:#1a1a1a; font-size:0.95rem;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Generate Button -->
+    <div class="btn-row">
+      <button class="btn btn-primary" id="ai-generate-btn" onclick="generateWithAI()">
+        Gerar FlashCards
+      </button>
+    </div>
+
+    <!-- Status Message -->
+    <div id="ai-status-message" class="ai-status"></div>
+  </div>
 </div>
 
 <script>
@@ -753,6 +970,7 @@ JavaScript e a unica linguagem que roda nativamente nos navegadores."></textarea
       if (tab.dataset.tab === 'cards') renderCardList();
       if (tab.dataset.tab === 'create') refreshCategorySelects();
       if (tab.dataset.tab === 'study') { resetStudyView(); refreshCategorySelects(); }
+      if (tab.dataset.tab === 'generate') { updateApiKeyStatus(); refreshCategorySelects(); }
     });
   });
 
@@ -1203,6 +1421,218 @@ JavaScript e a unica linguagem que roda nativamente nos navegadores."></textarea
       });
     });
   });
+
+  // ========== AI GENERATION ==========
+  const GEMINI_API_KEY_STORAGE = 'gemini_api_key';
+
+  function loadGeminiApiKey() {
+    return localStorage.getItem(GEMINI_API_KEY_STORAGE) || '';
+  }
+
+  function saveGeminiApiKey() {
+    const key = document.getElementById('gemini-api-key').value.trim();
+    if (!key) {
+      showAiStatus('Por favor, cole sua chave de API.', 'error');
+      return;
+    }
+    localStorage.setItem(GEMINI_API_KEY_STORAGE, key);
+    showAiStatus('✓ Chave de API salva com sucesso!', 'success');
+    setTimeout(() => {
+      document.getElementById('api-key-status').innerHTML = '<span class="api-key-saved">✓ Chave Salva</span>';
+    }, 2000);
+  }
+
+  function showAiStatus(message, type) {
+    const el = document.getElementById('ai-status-message');
+    el.textContent = message;
+    el.className = 'ai-status ' + type;
+    if (type === 'success' || type === 'error') {
+      setTimeout(() => el.className = 'ai-status', 4000);
+    }
+  }
+
+  function updateApiKeyStatus() {
+    const key = loadGeminiApiKey();
+    const statusEl = document.getElementById('api-key-status');
+    if (key) {
+      statusEl.innerHTML = '<span class="api-key-saved">✓ Chave Salva</span>';
+      document.getElementById('gemini-api-key').value = key;
+    }
+  }
+
+  async function handleFileSelect(event, type) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const statusEl = document.getElementById(`file-${type}-selected`);
+    const textarea = document.getElementById('ai-content');
+
+    try {
+      let text = '';
+      if (type === 'txt') {
+        text = await file.text();
+      } else if (type === 'pdf') {
+        text = await extractTextFromPDF(file);
+      }
+
+      textarea.value = text;
+      statusEl.textContent = `✓ ${file.name}`;
+      statusEl.style.display = 'inline-block';
+      showAiStatus(`Arquivo carregado: ${file.name}`, 'success');
+    } catch (error) {
+      showAiStatus(`Erro ao carregar arquivo: ${error.message}`, 'error');
+    }
+  }
+
+  async function extractTextFromPDF(file) {
+    // Load PDF.js
+    if (!window.pdfjsLib) {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      await new Promise((resolve, reject) => {
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await window.pdfjsLib.getDocument(arrayBuffer).promise;
+    let text = '';
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map(item => item.str).join(' ');
+      text += pageText + '\n';
+    }
+
+    return text;
+  }
+
+  async function generateWithAI() {
+    const apiKey = loadGeminiApiKey();
+    const content = document.getElementById('ai-content').value.trim();
+    const cardCount = document.getElementById('ai-card-count').value;
+    const categorySelect = document.getElementById('ai-category-select').value;
+    const categoryNew = document.getElementById('ai-category-new').value.trim();
+    const category = categoryNew || categorySelect;
+
+    // Validations
+    if (!apiKey) {
+      showAiStatus('⚠ Salve sua chave de API primeiro!', 'error');
+      return;
+    }
+    if (!content) {
+      showAiStatus('⚠ Cole ou carregue um conteúdo primeiro!', 'error');
+      return;
+    }
+    if (!category) {
+      showAiStatus('⚠ Selecione ou crie uma categoria!', 'error');
+      return;
+    }
+
+    // Disable button and show loading
+    const btn = document.getElementById('ai-generate-btn');
+    btn.disabled = true;
+    showAiStatus(`${String.fromCharCode(8987)} Gerando ${cardCount} flashcards...`, 'loading');
+
+    try {
+      const prompt = `Leia o texto abaixo e crie ${cardCount} flashcards de múltipla escolha em português.
+Retorne APENAS um JSON válido (sem markdown, sem explicação), com este formato exato:
+[{"question":"...","options":["A","B","C","D"],"correctIndex":0,"explanation":"..."}]
+
+Texto:
+${content}`;
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.7 }
+          })
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMsg = errorData.error?.message || 'Erro desconhecido da API';
+        throw new Error(errorMsg);
+      }
+
+      const data = await response.json();
+      const rawText = data.candidates[0].content.parts[0].text;
+
+      // Extract JSON from response (remove markdown if present)
+      const jsonMatch = rawText.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) throw new Error('Resposta da IA em formato inválido');
+
+      const cards = JSON.parse(jsonMatch[0]);
+      if (!Array.isArray(cards) || cards.length === 0) {
+        throw new Error('Nenhum flashcard foi gerado');
+      }
+
+      // Save generated cards
+      const data_store = loadData();
+      let savedCount = 0;
+
+      cards.forEach(card => {
+        if (card.question && card.options && typeof card.correctIndex === 'number') {
+          const newCard = {
+            id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+            question: card.question,
+            options: card.options,
+            correctIndex: card.correctIndex,
+            explanation: card.explanation || 'A resposta correta é: ' + card.options[card.correctIndex],
+            category: category,
+            created: new Date().toISOString()
+          };
+          data_store.cards.push(newCard);
+          savedCount++;
+        }
+      });
+
+      saveData(data_store);
+
+      // Success feedback
+      showAiStatus(`✓ ${savedCount} flashcard(s) gerado(s) com sucesso!`, 'success');
+
+      // Clear inputs
+      document.getElementById('ai-content').value = '';
+      document.getElementById('ai-category-new').value = '';
+      document.getElementById('file-txt').value = '';
+      document.getElementById('file-pdf').value = '';
+      document.getElementById('file-txt-selected').style.display = 'none';
+      document.getElementById('file-pdf-selected').style.display = 'none';
+
+      // Refresh categories
+      refreshCategorySelects();
+
+      // Redirect to cards tab
+      setTimeout(() => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelector('[data-tab="cards"]').classList.add('active');
+        document.getElementById('cards').classList.add('active');
+        renderCardList();
+      }, 1500);
+
+    } catch (error) {
+      let errorMsg = error.message;
+      if (error.message.includes('API key')) {
+        errorMsg = 'Chave de API inválida ou expirada. Gere uma nova em aistudio.google.com';
+      } else if (error.message.includes('quota')) {
+        errorMsg = 'Limite de requisições atingido. Tente novamente mais tarde.';
+      }
+      showAiStatus(`✗ ${errorMsg}`, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
 
   // ========== INIT ==========
   refreshCategorySelects();
