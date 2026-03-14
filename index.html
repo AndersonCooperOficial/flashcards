@@ -680,6 +680,99 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    /* Settings Button & Modal */
+    .settings-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #000;
+      color: #fff;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      transition: all 0.25s;
+      z-index: 100;
+    }
+
+    .settings-btn:hover {
+      background: #333;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      transform: scale(1.1);
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #fff;
+      border-radius: 12px;
+      padding: 32px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: slideUp 0.3s ease;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .modal-header h2 {
+      font-size: 1.4rem;
+      font-weight: 300;
+      margin: 0;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.6rem;
+      cursor: pointer;
+      color: #999;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s;
+    }
+
+    .modal-close:hover {
+      color: #000;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
     /* Responsive */
     @media (max-width: 600px) {
       .container { padding: 24px 16px; }
@@ -691,6 +784,8 @@
       .stat { min-width: 70px; padding: 12px 12px; font-size: 0.9rem; }
       .results .score { font-size: 2.5rem; }
       .tab { max-width: 100%; padding: 12px 16px; font-size: 0.85rem; }
+      .settings-btn { width: 44px; height: 44px; font-size: 1.2rem; top: 16px; right: 16px; }
+      .modal-content { padding: 24px; }
     }
   </style>
 </head>
@@ -707,7 +802,34 @@
     <button class="tab" data-tab="cards">Meus Cards</button>
     <button class="tab" data-tab="create">Criar</button>
     <button class="tab" data-tab="generate">Gerar com IA</button>
-    <button class="tab" data-tab="settings">⚙️ Configurações</button>
+  </div>
+
+  <!-- Settings Button -->
+  <button class="settings-btn" onclick="openSettingsModal()" title="Configurações">⚙️</button>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Configurações</h2>
+        <button class="modal-close" onclick="closeSettingsModal()">✕</button>
+      </div>
+
+      <div class="api-key-section" style="border:none; padding:0; margin:0;">
+        <h3 style="margin-top:0;">🔑 Chave de API Groq</h3>
+        <p>Obtenha sua chave de API gratuita em: <a href="https://console.groq.com/keys" target="_blank" style="color:#667eea; text-decoration:none;">console.groq.com/keys</a></p>
+        <p style="font-size:0.8rem; color:#999; line-height:1.6;">
+          ✓ Sua chave fica salva apenas no seu navegador (localStorage)<br>
+          ✓ Não é enviada para servidores externos<br>
+          ✓ Você tem controle total sobre a chave
+        </p>
+        <div class="api-key-input-row">
+          <input type="password" id="groq-api-key" placeholder="Cole sua chave de API Groq aqui..." style="padding:12px 14px;">
+          <button class="btn btn-primary btn-sm" onclick="saveGroqApiKey()" style="white-space:nowrap;">Salvar</button>
+        </div>
+        <div id="api-key-status"></div>
+      </div>
+    </div>
   </div>
 
   <!-- STUDY SECTION -->
@@ -867,34 +989,9 @@ JavaScript e a unica linguagem que roda nativamente nos navegadores."></textarea
     </div>
   </div>
 
-  <!-- SETTINGS SECTION -->
-  <div id="settings" class="section">
-    <h2 style="margin-bottom:20px;">Configurações</h2>
-
-    <!-- API Key Configuration -->
-    <div class="api-key-section">
-      <h3>🔑 Chave de API Groq</h3>
-      <p>Obtenha sua chave de API gratuita em: <a href="https://console.groq.com/keys" target="_blank" style="color:#667eea; text-decoration:none;">console.groq.com/keys</a></p>
-      <p style="font-size:0.8rem; color:#999; line-height:1.6;">
-        ✓ Sua chave fica salva apenas no seu navegador (localStorage)<br>
-        ✓ Não é enviada para servidores externos<br>
-        ✓ Você tem controle total sobre a chave
-      </p>
-      <div class="api-key-input-row">
-        <input type="password" id="groq-api-key" placeholder="Cole sua chave de API Groq aqui..." style="padding:12px 14px;">
-        <button class="btn btn-primary btn-sm" onclick="saveGroqApiKey()" style="white-space:nowrap;">Salvar Chave</button>
-      </div>
-      <div id="api-key-status"></div>
-    </div>
-  </div>
-
   <!-- GENERATE WITH AI SECTION -->
   <div id="generate" class="section">
     <h2 style="margin-bottom:20px;">Gerar FlashCards com IA</h2>
-
-    <div style="background:#f0f4f8; border:1px solid #d5dfe5; border-radius:6px; padding:16px; margin-bottom:24px; color:#1a5f8f; font-size:0.9rem;">
-      💡 <strong>Dica:</strong> Antes de começar, configure sua chave de API na aba <strong>⚙️ Configurações</strong>
-    </div>
 
     <!-- Content Input Section -->
     <div class="ai-generate-section">
@@ -986,7 +1083,6 @@ JavaScript e a unica linguagem que roda nativamente nos navegadores."></textarea
       if (tab.dataset.tab === 'create') refreshCategorySelects();
       if (tab.dataset.tab === 'study') { resetStudyView(); refreshCategorySelects(); }
       if (tab.dataset.tab === 'generate') refreshCategorySelects();
-      if (tab.dataset.tab === 'settings') updateApiKeyStatus();
     });
   });
 
@@ -1436,6 +1532,26 @@ JavaScript e a unica linguagem que roda nativamente nos navegadores."></textarea
         lbl.textContent = parseInt(radio.value) === i && radio.checked ? 'Correta' : '';
       });
     });
+  });
+
+  // ========== SETTINGS MODAL ==========
+  function openSettingsModal() {
+    document.getElementById('settings-modal').classList.add('active');
+    updateApiKeyStatus();
+  }
+
+  function closeSettingsModal() {
+    document.getElementById('settings-modal').classList.remove('active');
+  }
+
+  // Close modal when clicking outside
+  document.getElementById('settings-modal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'settings-modal') closeSettingsModal();
+  });
+
+  // Close modal with Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSettingsModal();
   });
 
   // ========== AI GENERATION ==========
